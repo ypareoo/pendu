@@ -20,11 +20,12 @@
 
 """
 
-
-import pygame
+import sqlite3
 import random #pour sortir un nombre au pif
 import tkinter #logique
 from tkinter import messagebox #pour plus tard
+
+
 
 
 root = tkinter.Tk() #initialise tkinter
@@ -33,6 +34,16 @@ root.resizable(False, False) #bloque la possiblilité de la redimensionner
 root.title('Jeu du pendu - AUGEIX Adrien') #mets le titre
 root.iconbitmap('game.ico') #met la MAGNIFIQUE icone faite par mes soins
 
+conn = sqlite3.connect('score.db')
+c = conn.cursor()
+
+#Création d'un tableau contenant les scores
+c.execute("""CREATE TABLE IF NOT EXISTS SCORE (
+        name                VARCHAR             NOT NULL,
+        score               INTEGER             NOT NULL
+        )""")
+
+pseudo = "Enjoliveur"
 
 
 
@@ -68,6 +79,7 @@ def clearScreen(): #efface tout les elements de l'écran
 
 def game(): #fonction qui vérifie si le joueur gagne ou pas et affiche l'avancement du jeu
     global motJeu, motATrouver, nombreTentative, listeLettres, lettreDansLaListe, partieCreee, boutonQuitter
+    print(motATrouver)
     texteJeu.config(text=motJeu)
     lettreDansLaListe = False
     pasPerdreVie = False #permet de perdre une vie dans ce tour
@@ -78,6 +90,8 @@ def game(): #fonction qui vérifie si le joueur gagne ou pas et affiche l'avance
         boutonRelancer.pack()
         boutonQuitter.pack()
     elif motJeu == motATrouver :
+        c.execute("INSERT INTO SCORE VALUES (?, ?)", ((pseudo),(6-nombreTentative)))
+        conn.commit()
         texteJeu.config(text="Tu as gagné ! \n le mot était "+ motATrouver)
         photo.config(file="cake.gif") #affiche le gateau de portal quand on a gagné (hehe)
         text.destroy() #supprime les elements non nécéssaires et affiche les boutons pour relancer et quitter
@@ -155,6 +169,16 @@ def validerLettre(): #fait fonctionner le bouton valider et lance le jeu
         photo.config(file="frame_" + str(nombreTentative) + ".gif") #affiche l'image du pendu
     game() #continue de faire tourner le jeu, si on utilise des boucles l'interface freeze, noice
 
+c.execute("SELECT * FROM SCORE")
+score = c.fetchall()
+tableauScore = []
+
+score.sort()
+
+if not score:
+    print("Aucun score enregistré.")
+else :
+    print("meilleur score : " + str(score[len(score)-1][0]) + " avec " + str(score[len(score)-1][1]) + " points !")
 
 genGame() #lance une partie quand le programme est ouvert
 
