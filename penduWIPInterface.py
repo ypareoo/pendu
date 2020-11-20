@@ -1,3 +1,4 @@
+#Augeix Adrien
 
 # code source et tout les fichiers disponibles sur mon github
 # https://github.com/tokageki
@@ -31,7 +32,7 @@ ajout d'une database qui stocke le pseudo du meilleur joueur ainsi que son score
 
 """
 
-import sqlite3
+import sqlite3 #database qui donne le .db dans les fichiers du jeu
 import random #pour sortir un nombre au pif
 import tkinter #logique
 from tkinter import messagebox #pour plus tard
@@ -48,7 +49,7 @@ root.iconbitmap('game.ico') #met la MAGNIFIQUE icone faite par mes soins
 conn = sqlite3.connect('score.db')
 c = conn.cursor()
 
-#Création d'un tableau contenant les scores
+#Création d'un tableau contenant les scores dans la db
 c.execute("""CREATE TABLE IF NOT EXISTS SCORE (
         name                VARCHAR             NOT NULL,
         score               INTEGER             NOT NULL
@@ -92,7 +93,6 @@ def clearScreen(): #efface tout les elements de l'écran
 
 def game(): #fonction qui vérifie si le joueur gagne ou pas et affiche l'avancement du jeu
     global motJeu, motATrouver, nombreTentative, listeLettres, lettreDansLaListe, partieCreee, boutonQuitter
-    print(motATrouver)
     texteJeu.config(text=motJeu)
     lettreDansLaListe = False
     pasPerdreVie = False #permet de perdre une vie dans ce tour
