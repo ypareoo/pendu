@@ -1,7 +1,6 @@
-#Augeix Adrien
 
 # code source et tout les fichiers disponibles sur mon github
-# https://github.com/tokageki/pendu
+# https://github.com/tokageki
 
 
 """
@@ -17,6 +16,18 @@
    .d88P
  .d88P"
 888P"
+
+"""
+
+
+
+"""
+MODIFS :
+
+ajout d'une database qui stocke le pseudo du meilleur joueur ainsi que son score pour l'afficher sur le jeu
+
+(possibilité de parcourir les données du score .db avec le site https://sqliteonline.com/ et la commande SELECT * FROM SCORE; sur le site)
+(plusieurs ajouts possible avec la database)
 
 """
 
@@ -64,7 +75,7 @@ def motTiret():#fait le mot avec les -
 
 
 def clearScreen(): #efface tout les elements de l'écran
-    global message, text, boutonValider, labelImage, texteJeu, messageError, boutonValider, boutonQuitter
+    global message, text, boutonValider, labelImage, texteJeu, messageError, boutonValider, boutonQuitter, messagePseudo, pseudoCase
     message.destroy()
     labelImage.destroy()
     texteJeu.destroy()
@@ -73,6 +84,8 @@ def clearScreen(): #efface tout les elements de l'écran
     boutonValider.destroy()
     boutonRelancer.destroy()
     boutonQuitter.destroy()
+    messagePseudo.destroy()
+    pseudoCase.destroy()
 
     genGame() #relance une nouvelle partie
 
@@ -90,7 +103,11 @@ def game(): #fonction qui vérifie si le joueur gagne ou pas et affiche l'avance
         boutonRelancer.pack()
         boutonQuitter.pack()
     elif motJeu == motATrouver :
-        c.execute("INSERT INTO SCORE VALUES (?, ?)", ((pseudo),(6-nombreTentative)))
+        if pseudoCase.get() == "":
+            nomChoisi = "default"
+        else :
+            nomChoisi = pseudoCase.get()
+        c.execute("INSERT INTO SCORE VALUES (?, ?)", ((nomChoisi),(6-nombreTentative)))
         conn.commit()
         texteJeu.config(text="Tu as gagné ! \n le mot était "+ motATrouver)
         photo.config(file="cake.gif") #affiche le gateau de portal quand on a gagné (hehe)
@@ -104,15 +121,25 @@ def quitter(): #ferme la fenètre
     root.destroy()
 
 def genGame(): #génère une nouvelle partie
-    global motJeu, motATrouver, nombreTentative, listeLettres, lettreDansLaListe, partieCreee, text, message, boutonValider, texteJeu, messageError,photo,labelImage, boutonRelancer, boutonQuitter
+    global motJeu, motATrouver, nombreTentative, listeLettres, lettreDansLaListe, partieCreee, text, message, boutonValider, texteJeu, messageError,photo,labelImage, boutonRelancer, boutonQuitter, pseudoCase, messagePseudo
     motJeu = "" #remets les valeurs à zero et les initialise si elles existent pas
     nombreTentative = 0
     listeLettres = "" #besoin de faire une variable vide pour faire des += plus tard
     lettreDansLaListe = False
     pasPerdreVie = False
 
-    text = tkinter.Entry(width = 10) #affiche les elements
-    message = tkinter.Label(text="Bienvenue dans le jeu du pendu")
+    
+    texteBienvenue = "Bienvenue dans le jeu du pendu \n"
+
+    c.execute("SELECT * FROM SCORE") #prends le score dans la database
+    score = c.fetchall()
+    score.sort()
+
+    if not score:
+        texteBienvenue += "Aucun score enregistré."
+    else :
+        texteBienvenue += "meilleur score : " + str(score[len(score)-1][0]) + " avec seulement " + str(6-score[len(score)-1][1]) + " erreur(s) !"
+    message = tkinter.Label(text=texteBienvenue)
     boutonValider = tkinter.Button(root, text = "valider lettre", command = validerLettre, height=2, width=90)
     texteJeu = tkinter.Label(text="")
     messageError = tkinter.Label(text="")
@@ -121,6 +148,10 @@ def genGame(): #génère une nouvelle partie
     boutonRelancer = tkinter.Button(root, text = "Relancer une partie", command = clearScreen, height=2, width=90)
     boutonQuitter = tkinter.Button(root, text = "Quitter", command = quitter, height=2, width=90)
     labelImage.image = photo
+    text = tkinter.Entry(width = 10) #affiche les elements
+    messagePseudo = tkinter.Label(text="Pseudo :")
+
+    pseudoCase = tkinter.Entry(width = 10) #affiche les elements
 
     message.pack() #pack tout
     text.pack()
@@ -129,6 +160,8 @@ def genGame(): #génère une nouvelle partie
     texteJeu.pack()
     messageError.pack()
     boutonValider.pack()
+    messagePseudo.pack()
+    pseudoCase.pack()
 
 
     genMot() #prends un mot dans la liste
@@ -169,16 +202,8 @@ def validerLettre(): #fait fonctionner le bouton valider et lance le jeu
         photo.config(file="frame_" + str(nombreTentative) + ".gif") #affiche l'image du pendu
     game() #continue de faire tourner le jeu, si on utilise des boucles l'interface freeze, noice
 
-c.execute("SELECT * FROM SCORE")
-score = c.fetchall()
-tableauScore = []
 
-score.sort()
 
-if not score:
-    print("Aucun score enregistré.")
-else :
-    print("meilleur score : " + str(score[len(score)-1][0]) + " avec " + str(score[len(score)-1][1]) + " points !")
 
 genGame() #lance une partie quand le programme est ouvert
 
